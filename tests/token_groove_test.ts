@@ -37,7 +37,7 @@ Clarinet.test({
 });
 
 Clarinet.test({
-    name: "Test purchasing track",
+    name: "Test purchasing track and earning points",
     async fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
         const buyer = accounts.get('wallet_1')!;
@@ -61,31 +61,52 @@ Clarinet.test({
         ]);
         
         purchaseBlock.receipts[0].result.expectOk();
+
+        // Check earned points
+        let userPoints = chain.callReadOnlyFn(
+            'token-groove',
+            'get-user-points',
+            [types.principal(buyer.address)],
+            buyer.address
+        );
+        
+        assertEquals(userPoints.result.expectOk(), types.uint(50));
     }
 });
 
 Clarinet.test({
-    name: "Test recording streams",
+    name: "Test streaming and rewards system",
     async fn(chain: Chain, accounts: Map<string, Account>) {
         const user = accounts.get('wallet_1')!;
         
-        // Record a stream
-        let block = chain.mineBlock([
-            Tx.contractCall('token-groove', 'record-stream', [
-                types.uint(1)
-            ], user.address)
-        ]);
+        // Record multiple streams to accumulate points
+        for(let i = 0; i < 10; i++) {
+            let block = chain.mineBlock([
+                Tx.contractCall('token-groove', 'record-stream', [
+                    types.uint(1)
+                ], user.address)
+            ]);
+            block.receipts[0].result.expectOk();
+        }
         
-        block.receipts[0].result.expectOk();
-        
-        // Check stream count
-        let streamCount = chain.callReadOnlyFn(
+        // Check accumulated points (10 streams * 10 points = 100 points)
+        let userPoints = chain.callReadOnlyFn(
             'token-groove',
-            'get-stream-count',
-            [types.uint(1)],
+            'get-user-points',
+            [types.principal(user.address)],
             user.address
         );
         
-        assertEquals(streamCount.result.expectOk(), types.uint(1));
+        assertEquals(userPoints.result.expectOk(), types.uint(100));
+        
+        // Check reward tier (should be Bronze - tier 1)
+        let rewardTier = chain.callReadOnlyFn(
+            'token-groove',
+            'get-reward-tier',
+            [types.principal(user.address)],
+            user.address
+        );
+        
+        assertEquals(rewardTier.result.expectOk(), types.uint(1));
     }
 });
