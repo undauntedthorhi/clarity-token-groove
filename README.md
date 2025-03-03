@@ -6,10 +6,18 @@ TokenGroove is a decentralized music streaming platform that implements NFT owne
 - Mint music tracks as NFTs
 - Purchase tracks using STX
 - Transfer track ownership
-- Track streaming history
+- Track streaming history with rate limiting
 - Artist royalty payments
 - Metadata storage for track information
 - Streaming rewards system with points and tiers
+- Enhanced security features and optimization
+
+## Security Features
+- Contract version control
+- Rate limiting for streams (configurable cooldown)
+- Enhanced event tracking
+- Improved input validation
+- Emergency pause functionality
 
 ## Rewards System
 Users can earn points through platform engagement:
